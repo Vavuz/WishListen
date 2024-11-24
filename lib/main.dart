@@ -41,39 +41,39 @@ class _SearchPageState extends State<SearchPage> {
     _fetchSpotifyToken(); // Fetch token when the app starts
   }
 
-Future<void> _fetchSpotifyToken() async {
-  setState(() {
-    _isLoading = true;
-  });
-
-  try {
-    // Fetch token
-    final tokenResponse = await http.get(
-      Uri.parse('https://wishlistenbackend.onrender.com/get-spotify-token'),
-      headers: {
-        'x-api-key': 'follettifollettisiamdeigeniperfetti',
-      },
-    );
-
-    if (tokenResponse.statusCode == 200) {
-      final tokenData = json.decode(tokenResponse.body);
-
-      setState(() {
-        _accessToken = tokenData['accessToken']; // Extract token from response
-      });
-    } else {
-      _showError(
-        'Failed to fetch Spotify token: ${tokenResponse.statusCode} - ${tokenResponse.body}',
-      );
-    }
-  } catch (e) {
-    _showError('An error occurred: $e');
-  } finally {
+  Future<void> _fetchSpotifyToken() async {
     setState(() {
-      _isLoading = false;
+      _isLoading = true;
     });
+
+    try {
+      // Fetch token
+      final tokenResponse = await http.get(
+        Uri.parse('https://wishlistenbackend.onrender.com/get-spotify-token'),
+        headers: {
+          'x-api-key': 'follettifollettisiamdeigeniperfetti',
+        },
+      );
+
+      if (tokenResponse.statusCode == 200) {
+        final tokenData = json.decode(tokenResponse.body);
+
+        setState(() {
+          _accessToken = tokenData['accessToken']; // Extract token from response
+        });
+      } else {
+        _showError(
+          'Failed to fetch Spotify token: ${tokenResponse.statusCode} - ${tokenResponse.body}',
+        );
+      }
+    } catch (e) {
+      _showError('An error occurred: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-}
 
   Future<void> _searchSpotify(String query) async {
     if (_accessToken == null) {
@@ -95,8 +95,42 @@ Future<void> _fetchSpotifyToken() async {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+
         setState(() {
-          _searchResults = data['tracks']['items'] ?? [];
+          _searchResults = [];
+          // Parse tracks
+          if (data['tracks'] != null) {
+            for (var track in data['tracks']['items']) {
+              _searchResults.add({
+                'type': 'track',
+                'name': track['name'],
+                'artist': track['artists'][0]['name'],
+                'image': track['album']['images'][0]['url'],
+              });
+            }
+          }
+          // Parse albums
+          if (data['albums'] != null) {
+            for (var album in data['albums']['items']) {
+              _searchResults.add({
+                'type': 'album',
+                'name': album['name'],
+                'artist': album['artists'][0]['name'],
+                'image': album['images'][0]['url'],
+              });
+            }
+          }
+          // Parse artists
+          if (data['artists'] != null) {
+            for (var artist in data['artists']['items']) {
+              _searchResults.add({
+                'type': 'artist',
+                'name': artist['name'],
+                'artist': 'Artist',
+                'image': artist['images'].isNotEmpty ? artist['images'][0]['url'] : null, // Artist image
+              });
+            }
+          }
         });
       } else {
         _showError('Failed to search Spotify.');
@@ -134,7 +168,7 @@ Future<void> _fetchSpotifyToken() async {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
                 prefixIcon: const Icon(Icons.search),
               ),
-              onSubmitted: _searchSpotify, // Triggers search when submitted
+              onSubmitted: _searchSpotify, // Triggers search
             ),
             const SizedBox(height: 16.0),
             if (_isLoading) ...[
@@ -146,8 +180,16 @@ Future<void> _fetchSpotifyToken() async {
                   itemBuilder: (context, index) {
                     final item = _searchResults[index];
                     return ListTile(
+                      leading: item['image'] != null
+                          ? Image.network(
+                              item['image'],
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                            )
+                          : const Icon(Icons.music_note),
                       title: Text(item['name'] ?? 'Unknown'),
-                      subtitle: Text(item['artists']?.first['name'] ?? 'Unknown Artist'),
+                      subtitle: Text(item['artist'] ?? 'Unknown Artist'),
                     );
                   },
                 ),
