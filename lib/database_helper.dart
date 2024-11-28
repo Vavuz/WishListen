@@ -19,9 +19,9 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
-
     return openDatabase(
       join(dbPath, 'mylist.db'),
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE items (
@@ -29,11 +29,16 @@ class DatabaseHelper {
             type TEXT NOT NULL,
             name TEXT NOT NULL,
             artist TEXT NOT NULL,
-            image TEXT NOT NULL
+            image TEXT NOT NULL,
+            parentId TEXT
           )
         ''');
       },
-      version: 1,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('ALTER TABLE items ADD COLUMN parentId TEXT');
+        }
+      },
     );
   }
 

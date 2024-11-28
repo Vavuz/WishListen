@@ -281,17 +281,53 @@ class _SearchPageState extends State<SearchPage> {
                   final item = _searchResults[index];
                   return ListTile(
                     leading: item['image'] != null
-                        ? Image.network(
-                            item['image'],
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
-                          )
-                        : const Icon(Icons.music_note),
-                    title: Text(item['name'] ?? 'Unknown'),
-                    subtitle: Text(item['artist'] ?? 'Unknown Artist'),
+                        ? Image.network(item['image'], width: 50, height: 50, fit: BoxFit.cover)
+                        : Icon(
+                            item['type'] == 'track'
+                                ? Icons.music_note
+                                : item['type'] == 'artist'
+                                    ? Icons.person
+                                    : Icons.album,
+                            color: Colors.white70,
+                          ),
+                    title: Text(
+                      item['name'],
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    subtitle: Row(
+                      children: [
+                        // Type badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[800],
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          child: Text(
+                            item['type'].toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 10.0,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8.0),
+                        if (item['type'] == 'track' || item['type'] == 'album')
+                          Flexible(
+                            child: Text(
+                              'by ${item['artist']}',
+                              style: const TextStyle(color: Colors.white54, fontSize: 12.0),
+                              overflow: TextOverflow.ellipsis, // Truncate overflow text
+                              maxLines: 1,
+                            ),
+                          ),
+                      ],
+                    ),
                     trailing: IconButton(
-                      icon: const Icon(Icons.add),
+                      icon: const Icon(
+                        Icons.add,
+                        color: Colors.white,
+                      ),
                       onPressed: () => addToMyList(item),
                     ),
                   );
@@ -381,31 +417,70 @@ Widget build(BuildContext context) {
           itemCount: _myList.length,
           itemBuilder: (context, index) {
             final item = _myList[index];
-            return ListTile(
-              leading: item['image'] != null
-                  ? Image.network(item['image'], width: 50, height: 50, fit: BoxFit.cover)
-                  : const Icon(Icons.music_note),
-              title: Text(
-                item['name'],
-                style: const TextStyle(color: Colors.white),
-              ),
-              subtitle: Text(
-                item['type'].toUpperCase(),
-                style: const TextStyle(color: Colors.white70),
-              ),
-              trailing: Checkbox(
-                value: false,
-                onChanged: (value) async {
-                  if (value == true) {
-                    final confirmed = await _showConfirmationDialog(
-                      'Delete Item',
-                      'Are you sure you want to delete this item?',
-                    );
-                    if (confirmed) {
-                      _deleteItem(item['id']);
-                    }
-                  }
-                },
+            return Padding(
+              padding: EdgeInsets.only(left: item['parentId'] != null ? 32.0 : 0.0), // Indent songs
+              child: ListTile(
+                leading: item['image'] != null
+                    ? Image.network(item['image'], width: 50, height: 50, fit: BoxFit.cover)
+                    : Icon(
+                        item['type'] == 'track'
+                            ? Icons.music_note
+                            : item['type'] == 'artist'
+                                ? Icons.person
+                                : Icons.album,
+                        color: Colors.white70,
+                      ),
+                title: Text(
+                  item['name'],
+                  style: const TextStyle(color: Colors.white),
+                ),
+                subtitle: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800],
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: Text(
+                        item['type'].toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 10.0,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8.0),
+                    if (item['type'] == 'track' || item['type'] == 'album')
+                      Flexible(
+                        child: Text(
+                          'by ${item['artist']}',
+                          style: const TextStyle(color: Colors.white54, fontSize: 12.0),
+                          overflow: TextOverflow.ellipsis, // Truncate overflow text
+                          maxLines: 1,
+                        ),
+                      ),
+                  ],
+                ),
+                trailing: item['parentId'] == null
+                    ? IconButton( // Show bin icon for standalone items
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () async {
+                          final confirmed = await _showConfirmationDialog(
+                            'Delete ${item['type']}',
+                            'Are you sure you want to delete this ${item['type']}?',
+                          );
+                          if (confirmed) {
+                            _deleteItem(item['id']);
+                          }
+                        },
+                      )
+                    : Checkbox( // Show checkbox for songs inside albums
+                        value: false, // Placeholder for now
+                        onChanged: (value) async {
+                          _deleteItem(item['id']);
+                        },
+                      ),
               ),
             );
           },
