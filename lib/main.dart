@@ -305,37 +305,67 @@ class _MyListPageState extends State<MyListPage> {
     _loadMyList();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return _myList.isEmpty
-        ? const Center(
-            child: Text(
-              'No items in your list.',
-              style: TextStyle(color: Colors.white70),
-            ),
-          )
-        : ListView.builder(
-            itemCount: _myList.length,
-            itemBuilder: (context, index) {
-              final item = _myList[index];
-              return ListTile(
-                leading: item['image'] != null
-                    ? Image.network(item['image'], width: 50, height: 50, fit: BoxFit.cover)
-                    : const Icon(Icons.music_note),
-                title: Text(
-                  item['name'],
-                  style: const TextStyle(color: Colors.white),
-                ),
-                subtitle: Text(
-                  item['type'].toUpperCase(),
-                  style: const TextStyle(color: Colors.white70),
-                ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _deleteItem(item['id']),
-                ),
-              );
-            },
-          );
+  Future<bool> _showConfirmationDialog(String title, String content) async {
+  return await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(title),
+      content: Text(content),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('Confirm'),
+        ),
+      ],
+    ),
+  ) ?? false;
+}
+
+@override
+Widget build(BuildContext context) {
+  return _myList.isEmpty
+      ? const Center(
+          child: Text(
+            'No items in your list.',
+            style: TextStyle(color: Colors.white70),
+          ),
+        )
+      : ListView.builder(
+          itemCount: _myList.length,
+          itemBuilder: (context, index) {
+            final item = _myList[index];
+            return ListTile(
+              leading: item['image'] != null
+                  ? Image.network(item['image'], width: 50, height: 50, fit: BoxFit.cover)
+                  : const Icon(Icons.music_note),
+              title: Text(
+                item['name'],
+                style: const TextStyle(color: Colors.white),
+              ),
+              subtitle: Text(
+                item['type'].toUpperCase(),
+                style: const TextStyle(color: Colors.white70),
+              ),
+              trailing: Checkbox(
+                value: false,
+                onChanged: (value) async {
+                  if (value == true) {
+                    final confirmed = await _showConfirmationDialog(
+                      'Delete Item',
+                      'Are you sure you want to delete this item?',
+                    );
+                    if (confirmed) {
+                      _deleteItem(item['id']);
+                    }
+                  }
+                },
+              ),
+            );
+          },
+        );
   }
 }
