@@ -13,11 +13,38 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'WishListen',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-        useMaterial3: true,
+      home: const MainPage(),
+    );
+  }
+}
+
+class MainPage extends StatelessWidget {
+  const MainPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      initialIndex: 1,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('WishListen'),
+          centerTitle: true,
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Search'),
+              Tab(text: 'My List'),
+            ],
+          ),
+        ),
+        body: const TabBarView(
+          children: [
+            SearchPage(),
+            MyListPage(),
+          ],
+        ),
       ),
-      home: const SearchPage(),
     );
   }
 }
@@ -200,6 +227,17 @@ class _SearchPageState extends State<SearchPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class MyListPage extends StatelessWidget {
+  const MyListPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text('Hello'),
     );
   }
 }
