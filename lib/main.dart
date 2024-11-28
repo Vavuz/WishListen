@@ -218,7 +218,36 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> addToMyList(Map<String, dynamic> item) async {
     final dbHelper = DatabaseHelper();
+
     await dbHelper.insertItem(item);
+
+    // If it's an album, fetch and add its songs
+    if (item['type'] == 'album') {
+      final albumId = item['id'];
+      final response = await http.get(
+        Uri.parse('https://api.spotify.com/v1/albums/$albumId/tracks'),
+        headers: {'Authorization': 'Bearer $_accessToken'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final songs = data['items'] as List<dynamic>;
+
+        for (var song in songs) {
+          final songItem = {
+            'id': song['id'],
+            'type': 'track',
+            'name': song['name'],
+            'artist': song['artists'][0]['name'],
+            'image': item['image'],
+            'parentId': albumId,
+          };
+
+          await dbHelper.insertItem(songItem);
+        }
+      }
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('${item['name']} added to My List')),
     );
@@ -294,8 +323,22 @@ class _MyListPageState extends State<MyListPage> {
   Future<void> _loadMyList() async {
     final dbHelper = DatabaseHelper();
     final items = await dbHelper.getItems();
+
+    final albums = items.where((item) => item['type'] == 'album').toList();
+    final songs = items.where((item) => item['type'] == 'track').toList();
+
+    // Build the new list
+    List<Map<String, dynamic>> newList = [];
+    for (var album in albums) {
+      newList.add(album);
+      final albumSongs = songs.where((song) => song['parentId'] == album['id']).toList();
+      newList.addAll(albumSongs);
+    }
+
+    newList.addAll(items.where((item) => item['type'] != 'album' && item['parentId'] == null));
+
     setState(() {
-      _myList = items;
+      _myList = newList;
     });
   }
 
