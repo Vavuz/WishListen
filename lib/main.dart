@@ -56,32 +56,73 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MainPage extends StatelessWidget {
+class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
   @override
+  State<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+
+    _tabController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      initialIndex: 1,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('WishListen'),
-          centerTitle: true,
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Search'),
-              Tab(text: 'My List'),
-            ],
-          ),
-        ),
-        body: const TabBarView(
-          children: [
-            SearchPage(),
-            MyListPage(),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('WishListen'),
+        centerTitle: true,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        actions: [
+          if (_tabController.index == 1)
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (_tabController.index == 1) {
+                  MyListPage.menuCallback?.call(value);
+                }
+              },
+              icon: const Icon(Icons.filter_list),
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'sort_name', child: Text('Sort by Name')),
+                const PopupMenuItem(value: 'sort_artist', child: Text('Sort by Artist')),
+                const PopupMenuItem(value: 'sort_type', child: Text('Sort by Type')),
+                const PopupMenuItem(value: 'filter_songs', child: Text('Show Only Songs')),
+                const PopupMenuItem(value: 'filter_artists', child: Text('Show Only Artists')),
+                const PopupMenuItem(value: 'filter_albums', child: Text('Show Only Albums')),
+                const PopupMenuItem(value: 'filter_all', child: Text('Show All')),
+              ],
+            ),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Search'),
+            Tab(text: 'My List'),
           ],
         ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: const [
+          SearchPage(),
+          MyListPage(),
+        ],
       ),
     );
   }
@@ -192,7 +233,7 @@ class _SearchPageState extends State<SearchPage> {
                 'id': artist['id'],
                 'type': 'artist',
                 'name': artist['name'],
-                'artist': 'Artist',
+                'artist': artist['name'],
                 'image': artist['images'].isNotEmpty ? artist['images'][0]['url'] : null,
               });
             }
@@ -343,38 +384,115 @@ class _SearchPageState extends State<SearchPage> {
 class MyListPage extends StatefulWidget {
   const MyListPage({super.key});
 
+  static Function(String)? menuCallback;
+
   @override
   State<MyListPage> createState() => _MyListPageState();
 }
 
 class _MyListPageState extends State<MyListPage> {
+  List<Map<String, dynamic>> _originalList = [];
   List<Map<String, dynamic>> _myList = [];
+  String _currentFilter = 'filter_all';
+  String _currentSort = '';
 
   @override
   void initState() {
     super.initState();
     _loadMyList();
+    MyListPage.menuCallback = _handleMenuSelection;
+  }
+
+  @override
+  void dispose() {
+    MyListPage.menuCallback = null;
+    super.dispose();
+  }
+
+  void _handleMenuSelection(String value) {
+    switch (value) {
+      case 'sort_name':
+        _currentSort = 'name';
+        break;
+      case 'sort_artist':
+        _currentSort = 'artist';
+        break;
+      case 'sort_type':
+        _currentSort = 'type';
+        break;
+      case 'filter_songs':
+        _currentFilter = 'filter_track';
+        break;
+      case 'filter_artists':
+        _currentFilter = 'filter_artist';
+        break;
+      case 'filter_albums':
+        _currentFilter = 'filter_album';
+        break;
+      case 'filter_all':
+        _currentFilter = 'filter_all';
+        _currentSort = '';
+        break;
+    }
+
+    _applyFiltersAndSorts();
+  }
+
+  void _sortListBy(String field) {
+    setState(() {
+      _currentSort = field;
+      _myList.sort((a, b) {
+        final aValue = (a[field] ?? '').toString().toLowerCase();
+        final bValue = (b[field] ?? '').toString().toLowerCase();
+        return aValue.compareTo(bValue);
+      });
+    });
+  }
+
+  void _applyFiltersAndSorts() {
+    setState(() {
+      _myList = List.from(_originalList);
+
+      // Apply filter if not "show all"
+      if (_currentFilter != 'filter_all') {
+        final filterType = _currentFilter.replaceFirst('filter_', '');
+        _myList = _myList.where((item) => item['type'] == filterType).toList();
+      }
+
+      // Apply sort if specified
+      if (_currentSort.isNotEmpty) {
+        _sortListBy(_currentSort);
+      }
+    });
   }
 
   Future<void> _loadMyList() async {
     final dbHelper = DatabaseHelper();
     final items = await dbHelper.getItems();
 
-    final albums = items.where((item) => item['type'] == 'album').toList();
-    final songs = items.where((item) => item['type'] == 'track').toList();
+    // Reverse the items list to display the most recently added first
+    final reversedItems = items.reversed.toList();
 
     // Build the new list
     List<Map<String, dynamic>> newList = [];
-    for (var album in albums) {
-      newList.add(album);
-      final albumSongs = songs.where((song) => song['parentId'] == album['id']).toList();
-      newList.addAll(albumSongs);
+    final songs = reversedItems.where((item) => item['type'] == 'track').toList();
+
+    for (var item in reversedItems) {
+      if (item['type'] == 'album') {
+        newList.add(item);    // Add album
+        final albumSongs = songs.where((song) => song['parentId'] == item['id']).toList();
+        newList.addAll(albumSongs);    // Add songs of the album
+      } else if (item['parentId'] == null) {
+          newList.add(item);    // Add standalone items
+        }
     }
 
-    newList.addAll(items.where((item) => item['type'] != 'album' && item['parentId'] == null));
-
     setState(() {
-      _myList = newList;
+      _originalList = List.from(newList); // Save the unfiltered, unsorted list
+      _myList = List.from(_originalList);
+
+      // Apply current filter and sort
+      _applyFiltersAndSorts();
     });
   }
 
@@ -387,7 +505,7 @@ class _MyListPageState extends State<MyListPage> {
       await dbHelper.deleteItemsByParentId(id);
     } else {
       // Delete individual item
-    await dbHelper.deleteItem(id);
+      await dbHelper.deleteItem(id);
     }
 
     await _loadMyList();

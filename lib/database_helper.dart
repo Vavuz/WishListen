@@ -49,7 +49,7 @@ class DatabaseHelper {
 
   Future<List<Map<String, dynamic>>> getItems() async {
     final db = await database;
-    return db.query('items');
+    return db.query('items', orderBy: 'rowid ASC');
   }
 
   Future<void> deleteItem(String id) async {
