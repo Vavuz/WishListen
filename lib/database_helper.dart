@@ -56,4 +56,9 @@ class DatabaseHelper {
     final db = await database;
     await db.delete('items', where: 'id = ?', whereArgs: [id]);
   }
+
+  Future<void> deleteItemsByParentId(String parentId) async {
+    final db = await database;
+    await db.delete('items', where: 'parentId = ?', whereArgs: [parentId]);
+  }
 }

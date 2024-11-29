@@ -378,10 +378,19 @@ class _MyListPageState extends State<MyListPage> {
     });
   }
 
-  Future<void> _deleteItem(String id) async {
+  Future<void> _deleteItem(String id, String type) async {
     final dbHelper = DatabaseHelper();
+
+    if (type == 'album') {
+      // Delete album and associated songs
+      await dbHelper.deleteItem(id);
+      await dbHelper.deleteItemsByParentId(id);
+    } else {
+      // Delete individual item
     await dbHelper.deleteItem(id);
-    _loadMyList();
+    }
+
+    await _loadMyList();
   }
 
   Future<bool> _showConfirmationDialog(String title, String content) async {
@@ -471,14 +480,14 @@ Widget build(BuildContext context) {
                             'Are you sure you want to delete this ${item['type']}?',
                           );
                           if (confirmed) {
-                            _deleteItem(item['id']);
+                            _deleteItem(item['id'], item['type']);
                           }
                         },
                       )
                     : Checkbox( // Show checkbox for songs inside albums
                         value: false, // Placeholder for now
                         onChanged: (value) async {
-                          _deleteItem(item['id']);
+                          _deleteItem(item['id'], item['type']);
                         },
                       ),
               ),
