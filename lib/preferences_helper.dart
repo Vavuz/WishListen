@@ -10,6 +10,6 @@ class PreferencesHelper {
 
   static Future<bool> getAskDeleteConfirmation() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(askDeleteConfirmationKey) ?? true; // Default to true
+    return prefs.getBool(askDeleteConfirmationKey) ?? true;
   }
 }
