@@ -91,6 +91,12 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.more_vert),    // Options icon
+          onPressed: () {
+            _showOptionsDialog(context);
+          },
+        ),
         title: const Text('WishListen'),
         centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -134,6 +140,35 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
           const MyListPage(),
         ],
       ),
+    );
+  }
+
+  void _showOptionsDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.of(context).pop();
+                // Navigate to settings page or show settings dialog
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.info),
+              title: const Text('About'),
+              onTap: () {
+                Navigator.of(context).pop();
+                // Show about dialog or navigate to about page
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
