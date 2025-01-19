@@ -150,6 +150,7 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   String? _accessToken;
   List<dynamic> _searchResults = [];
+  Set<String> _myListIds = {};
   bool _isLoading = false;
   bool _hasSearched = false;
   final TextEditingController _searchController = TextEditingController();
@@ -157,10 +158,19 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
-    _fetchSpotifyToken();
+  _fetchSpotifyToken();
+  _loadMyListIds();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.focusNode.requestFocus();
+    });
+  }
+
+  Future<void> _loadMyListIds() async {
+    final dbHelper = DatabaseHelper();
+    final items = await dbHelper.getItems();
+    setState(() {
+      _myListIds = items.map((item) => item['id'] as String).toSet();
     });
   }
 
@@ -410,11 +420,16 @@ class _SearchPageState extends State<SearchPage> {
                           ],
                         ),
                         trailing: IconButton(
-                          icon: const Icon(
-                            Icons.add,
+                          icon: Icon(
+                            _myListIds.contains(item['id']) ? Icons.check : Icons.add,
                             color: Colors.white,
                           ),
-                          onPressed: () => addToMyList(item),
+                          onPressed: _myListIds.contains(item['id'])
+                              ? null // Disable the button if already added
+                              : () async {
+                                await addToMyList(item); // Add the item
+                                setState(() => _myListIds.add(item['id'])); // Update the state to reflect the change
+                              },
                         ),
                       ),
                     ),
