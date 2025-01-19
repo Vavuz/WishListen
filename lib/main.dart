@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'database_helper.dart';
+import 'preferences_helper.dart';
 
 void main() {
   runApp(const MyApp());
@@ -66,6 +67,7 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final FocusNode _searchFocusNode = FocusNode();
+  bool isAskConfirmationEnabled = true;
 
   @override
   void initState() {
@@ -76,6 +78,15 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
       if (_tabController.index != 0) {
         _searchFocusNode.unfocus();
       }
+    });
+
+    _loadAskDeleteConfirmation();
+  }
+
+  void _loadAskDeleteConfirmation() async {
+    bool value = await PreferencesHelper.getAskDeleteConfirmation();
+    setState(() {
+      isAskConfirmationEnabled = value;
     });
   }
 
@@ -155,7 +166,7 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
               title: const Text('Settings'),
               onTap: () {
                 Navigator.of(context).pop();
-                // Navigate to settings page or show settings dialog
+                _showSettingsDialog(context);
               },
             ),
             ListTile(
@@ -167,6 +178,66 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
               },
             ),
           ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showSettingsDialog(BuildContext context) async {
+    bool isAskConfirmationEnabled = await PreferencesHelper.getAskDeleteConfirmation();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF191414),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+              title: const Text(
+                'Settings',
+                style: TextStyle(color: Colors.white),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Ask for confirmation before deleting an item',
+                          style: TextStyle(color: Colors.white70),
+                          maxLines: null,
+                        ),
+                      ),
+                      Switch(
+                        value: isAskConfirmationEnabled,
+                        onChanged: (bool newValue) async {
+                          await PreferencesHelper.setAskDeleteConfirmation(newValue);
+                          setState(() {
+                            isAskConfirmationEnabled = newValue;
+                          });
+                        },
+                        activeColor: const Color(0xFF1DB954),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(color: Color(0xFF1DB954)),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -754,11 +825,17 @@ Widget build(BuildContext context) {
                     ? IconButton(
                         icon: const Icon(Icons.delete, color: Color.fromARGB(255, 211, 22, 8)),
                         onPressed: () async {
-                          final confirmed = await _showConfirmationDialog(
-                            'Delete ${item['type']}',
-                            'Are you sure you want to delete this ${item['type']}?',
-                          );
-                          if (confirmed) {
+                          final askConfirmation = await PreferencesHelper.getAskDeleteConfirmation();
+
+                          if (askConfirmation) {
+                            final confirmed = await _showConfirmationDialog(
+                              'Delete ${item['type']}',
+                              'Are you sure you want to delete this ${item['type']}?',
+                            );
+                            if (confirmed) {
+                              _deleteItem(item['id'], item['type']);
+                            }
+                          } else {
                             _deleteItem(item['id'], item['type']);
                           }
                         },
