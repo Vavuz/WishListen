@@ -163,8 +163,46 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
               title: const Text('About'),
               onTap: () {
                 Navigator.of(context).pop();
-                // Show about dialog or navigate to about page
+                _showAboutDialog(context);
               },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAboutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF191414),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+          title: const Text(
+            'About WishListen',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: const Text(
+            'Hi from Vavuz, the developer of WishListen!\n\n'
+            'I hope you enjoy this app. Here’s how to use it:\n'
+            '- Search for songs, albums, or artists in the Search tab.\n'
+            '- Add them to your list by clicking the "+" icon.\n'
+            '- Manage your list in the My List tab using filters and sorting options.\n\n'
+            'If the search doesn’t work, give it a minute for the keys to be fetched.\n\n'
+            'Thanks for trying WishListen!',
+            style: TextStyle(color: Colors.white70, fontSize: 14.0),
+            textAlign: TextAlign.left,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Close',
+                style: TextStyle(color: Color(0xFF1DB954)),
+              ),
             ),
           ],
         );
