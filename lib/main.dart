@@ -71,7 +71,8 @@ class MainPage extends StatefulWidget {
   State<MainPage> createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin {
+class _MainPageState extends State<MainPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final FocusNode _searchFocusNode = FocusNode();
   bool isAskConfirmationEnabled = true;
@@ -110,7 +111,7 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.more_vert),    // Options icon
+          icon: const Icon(Icons.more_vert),
           onPressed: () {
             _showOptionsDialog(context);
           },
@@ -129,13 +130,22 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
                   },
                   icon: const Icon(Icons.filter_list),
                   itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'sort_name', child: Text('Sort by Name')),
-                    const PopupMenuItem(value: 'sort_artist', child: Text('Sort by Artist')),
-                    const PopupMenuItem(value: 'sort_type', child: Text('Sort by Type')),
-                    const PopupMenuItem(value: 'filter_songs', child: Text('Show Only Songs')),
-                    const PopupMenuItem(value: 'filter_artists', child: Text('Show Only Artists')),
-                    const PopupMenuItem(value: 'filter_albums', child: Text('Show Only Albums')),
-                    const PopupMenuItem(value: 'filter_all', child: Text('Show All')),
+                    const PopupMenuItem(
+                        value: 'sort_name', child: Text('Sort by Name')),
+                    const PopupMenuItem(
+                        value: 'sort_artist', child: Text('Sort by Artist')),
+                    const PopupMenuItem(
+                        value: 'sort_type', child: Text('Sort by Type')),
+                    const PopupMenuItem(
+                        value: 'filter_songs', child: Text('Show Only Songs')),
+                    const PopupMenuItem(
+                        value: 'filter_artists',
+                        child: Text('Show Only Artists')),
+                    const PopupMenuItem(
+                        value: 'filter_albums',
+                        child: Text('Show Only Albums')),
+                    const PopupMenuItem(
+                        value: 'filter_all', child: Text('Show All')),
                   ],
                 );
               }
@@ -191,7 +201,8 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
   }
 
   Future<void> _showSettingsDialog(BuildContext context) async {
-    bool isAskConfirmationEnabled = await PreferencesHelper.getAskDeleteConfirmation();
+    bool isAskConfirmationEnabled =
+        await PreferencesHelper.getAskDeleteConfirmation();
 
     showDialog(
       context: context,
@@ -200,7 +211,8 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
               backgroundColor: const Color(0xFF191414),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0)),
               title: const Text(
                 'Settings',
                 style: TextStyle(color: Colors.white),
@@ -221,7 +233,8 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
                       Switch(
                         value: isAskConfirmationEnabled,
                         onChanged: (bool newValue) async {
-                          await PreferencesHelper.setAskDeleteConfirmation(newValue);
+                          await PreferencesHelper.setAskDeleteConfirmation(
+                              newValue);
                           setState(() {
                             isAskConfirmationEnabled = newValue;
                           });
@@ -256,7 +269,8 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF191414),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
           title: const Text(
             'About WishListen',
             style: TextStyle(color: Colors.white),
@@ -309,8 +323,8 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
-  _fetchSpotifyToken();
-  _loadMyListIds();
+    _fetchSpotifyToken();
+    _loadMyListIds();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.focusNode.requestFocus();
@@ -370,7 +384,8 @@ class _SearchPageState extends State<SearchPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://api.spotify.com/v1/search?q=$query&type=track,artist,album&limit=10'),
+        Uri.parse(
+            'https://api.spotify.com/v1/search?q=$query&type=track,artist,album&limit=10'),
         headers: {
           'Authorization': 'Bearer $_accessToken',
         },
@@ -404,7 +419,9 @@ class _SearchPageState extends State<SearchPage> {
                 'type': 'album',
                 'name': album['name'],
                 'artist': album['artists'][0]['name'],
-                'image': album['images'].isNotEmpty ? album['images'][0]['url'] : null,
+                'image': album['images'].isNotEmpty
+                    ? album['images'][0]['url']
+                    : null,
               });
             }
           }
@@ -417,7 +434,9 @@ class _SearchPageState extends State<SearchPage> {
                 'type': 'artist',
                 'name': artist['name'],
                 'artist': artist['name'],
-                'image': artist['images'].isNotEmpty ? artist['images'][0]['url'] : null,
+                'image': artist['images'].isNotEmpty
+                    ? artist['images'][0]['url']
+                    : null,
               });
             }
           }
@@ -489,7 +508,8 @@ class _SearchPageState extends State<SearchPage> {
             onChanged: _searchSpotify,
             decoration: InputDecoration(
               hintText: 'Search for artists, songs, or albums',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
               prefixIcon: const Icon(Icons.search),
             ),
           ),
@@ -512,15 +532,19 @@ class _SearchPageState extends State<SearchPage> {
                           : Colors.amber[700];
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 4.0, horizontal: 8.0),
                     child: Material(
                       elevation: 2,
-                      borderRadius: BorderRadius.circular(item['type'] == 'artist' ? 50.0 : 12.0),
+                      borderRadius: BorderRadius.circular(
+                          item['type'] == 'artist' ? 50.0 : 12.0),
                       child: ListTile(
                         leading: item['image'] != null
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(
-                                  item['type'] == 'artist' ? 50.0 : (item['type'] == 'album' ? 12.0 : 0.0),
+                                  item['type'] == 'artist'
+                                      ? 50.0
+                                      : (item['type'] == 'album' ? 12.0 : 0.0),
                                 ),
                                 child: Image.network(
                                   item['image'],
@@ -545,7 +569,8 @@ class _SearchPageState extends State<SearchPage> {
                         subtitle: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0, vertical: 4.0),
                               decoration: BoxDecoration(
                                 color: badgeColor,
                                 borderRadius: BorderRadius.circular(12.0),
@@ -559,11 +584,13 @@ class _SearchPageState extends State<SearchPage> {
                               ),
                             ),
                             const SizedBox(width: 8.0),
-                            if (item['type'] == 'track' || item['type'] == 'album')
+                            if (item['type'] == 'track' ||
+                                item['type'] == 'album')
                               Flexible(
                                 child: Text(
                                   'by ${item['artist']}',
-                                  style: const TextStyle(color: Colors.white54, fontSize: 12.0),
+                                  style: const TextStyle(
+                                      color: Colors.white54, fontSize: 12.0),
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
                                 ),
@@ -572,15 +599,18 @@ class _SearchPageState extends State<SearchPage> {
                         ),
                         trailing: IconButton(
                           icon: Icon(
-                            _myListIds.contains(item['id']) ? Icons.check : Icons.add,
+                            _myListIds.contains(item['id'])
+                                ? Icons.check
+                                : Icons.add,
                             color: Colors.white,
                           ),
                           onPressed: _myListIds.contains(item['id'])
                               ? null // Disable the button if already added
                               : () async {
-                                await addToMyList(item); // Add the item
-                                setState(() => _myListIds.add(item['id'])); // Update the state to reflect the change
-                              },
+                                  await addToMyList(item);
+                                  setState(() => _myListIds.add(item[
+                                      'id']));
+                                },
                         ),
                       ),
                     ),
@@ -688,16 +718,20 @@ class _MyListPageState extends State<MyListPage> {
 
     // Build the new list
     List<Map<String, dynamic>> newList = [];
-    final songs = reversedItems.where((item) => item['type'] == 'track').toList();
+    final songs =
+        reversedItems.where((item) => item['type'] == 'track').toList();
 
     for (var item in reversedItems) {
       if (item['type'] == 'album') {
-        newList.add(item);    // Add album
-        final albumSongs = songs.where((song) => song['parentId'] == item['id']).toList();
-        newList.addAll(albumSongs);    // Add songs of the album
-      } else if (item['parentId'] == null) {
-          newList.add(item);    // Add standalone items
+        newList.add(item);
+        if (item['isExpanded'] == 1) {
+          final albumSongs =
+              songs.where((song) => song['parentId'] == item['id']).toList();
+          newList.addAll(albumSongs);
         }
+      } else if (item['parentId'] == null) {
+        newList.add(item);
+      }
     }
 
     setState(() {
@@ -725,138 +759,229 @@ class _MyListPageState extends State<MyListPage> {
   }
 
   Future<bool> _showConfirmationDialog(String title, String content) async {
-  return await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text(title),
-      content: Text(content),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Confirm'),
-        ),
-      ],
-    ),
-  ) ?? false;
-}
-
-@override
-Widget build(BuildContext context) {
-  return _myList.isEmpty
-      ? const Center(
-          child: Text(
-            'No items in your list.',
-            style: TextStyle(color: Colors.white70),
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(title),
+            content: Text(content),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Confirm'),
+              ),
+            ],
           ),
-        )
-      : ListView.builder(
-        itemCount: _myList.length,
-        itemBuilder: (context, index) {
-          final item = _myList[index];
+        ) ??
+        false;
+  }
 
-          final badgeColor = item['type'] == 'track'
-              ? Colors.green[700]
-              : item['type'] == 'album'
-                  ? Colors.blue[700]
-                  : Colors.amber[700];
+  Future<void> _toggleAlbumExpanded(String albumId, bool isExpanded) async {
+    final dbHelper = DatabaseHelper();
+    await dbHelper.updateItemExpanded(albumId, isExpanded);
+    await _loadMyList();
+  }
 
-          return Padding(
-            padding: EdgeInsets.only(
-              left: item['parentId'] != null ? 32.0 : 8.0, // Indent songs in albums
-              right: 8.0,
-              top: 4.0,
-              bottom: 4.0,
+  @override
+  Widget build(BuildContext context) {
+    return _myList.isEmpty
+        ? const Center(
+            child: Text(
+              'No items in your list.',
+              style: TextStyle(color: Colors.white70),
             ),
-            child: Material(
-              elevation: 2,
-              borderRadius: BorderRadius.circular(item['type'] == 'artist' ? 50.0 : 12.0),
-              child: ListTile(
-                leading: item['image'] != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          item['type'] == 'artist' ? 50.0 : (item['type'] == 'album' ? 12.0 : 0.0),
-                        ),
-                        child: Image.network(
-                          item['image'],
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : Icon(
-                        item['type'] == 'track'
-                            ? Icons.music_note
-                            : item['type'] == 'artist'
-                                ? Icons.person
-                                : Icons.album,
-                        color: Colors.white70,
-                        size: 40,
+          )
+        : ListView.builder(
+            itemCount: _myList.length,
+            itemBuilder: (context, index) {
+              final item = _myList[index];
+
+              final badgeColor = item['type'] == 'track'
+                  ? Colors.green[700]
+                  : item['type'] == 'album'
+                      ? Colors.blue[700]
+                      : Colors.amber[700];
+
+              if (item['type'] == 'album') {
+                final isExpanded = item['isExpanded'] == 1;
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0, vertical: 4.0),
+                  child: Material(
+                    elevation: 2,
+                    borderRadius: BorderRadius.circular(12.0),
+                    child: ListTile(
+                      leading: item['image'] != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12.0),
+                              child: Image.network(
+                                item['image'],
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : const Icon(Icons.album,
+                              size: 40, color: Colors.white70),
+                      title: Text(
+                        item['name'],
+                        style: const TextStyle(color: Colors.white),
                       ),
-                title: Text(
-                  item['name'],
-                  style: const TextStyle(color: Colors.white),
-                ),
-                subtitle: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                      decoration: BoxDecoration(
-                        color: badgeColor,
-                        borderRadius: BorderRadius.circular(12.0),
+                      subtitle: Text(
+                        'by ${item['artist']}',
+                        style: const TextStyle(color: Colors.white70),
                       ),
-                      child: Text(
-                        item['type'].toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 10.0,
-                          color: Colors.white,
-                        ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Expand/Collapse Icon
+                          IconButton(
+                            icon: Icon(
+                              isExpanded
+                                  ? Icons.expand_less
+                                  : Icons.expand_more,
+                              color: Colors.white,
+                            ),
+                            onPressed: () async {
+                              await _toggleAlbumExpanded(
+                                  item['id'], !isExpanded);
+                            },
+                          ),
+                          // Delete Icon
+                          IconButton(
+                            icon: const Icon(Icons.delete,
+                                color: Color.fromARGB(255, 211, 22, 8)),
+                            onPressed: () async {
+                              final askConfirmation = await PreferencesHelper
+                                  .getAskDeleteConfirmation();
+
+                              if (askConfirmation) {
+                                final confirmed = await _showConfirmationDialog(
+                                  'Delete Album',
+                                  'Are you sure you want to delete this album?',
+                                );
+                                if (confirmed) {
+                                  _deleteItem(item['id'], item['type']);
+                                }
+                              } else {
+                                _deleteItem(item['id'], item['type']);
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 8.0),
-                    if (item['type'] == 'track' || item['type'] == 'album')
-                      Flexible(
-                        child: Text(
-                          'by ${item['artist']}',
-                          style: const TextStyle(color: Colors.white54, fontSize: 12.0),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                  ],
-                ),
-                trailing: item['parentId'] == null
-                    ? IconButton(
-                        icon: const Icon(Icons.delete, color: Color.fromARGB(255, 211, 22, 8)),
-                        onPressed: () async {
-                          final askConfirmation = await PreferencesHelper.getAskDeleteConfirmation();
+                  ),
+                );
+              }
 
-                          if (askConfirmation) {
-                            final confirmed = await _showConfirmationDialog(
-                              'Delete ${item['type']}',
-                              'Are you sure you want to delete this ${item['type']}?',
-                            );
-                            if (confirmed) {
+              // Handle other items (e.g., tracks)
+              return Padding(
+                padding: EdgeInsets.only(
+                  left: item['parentId'] != null
+                      ? 32.0
+                      : 8.0, // Indent songs in albums
+                  right: 8.0,
+                  top: 4.0,
+                  bottom: 4.0,
+                ),
+                child: Material(
+                  elevation: 2,
+                  borderRadius: BorderRadius.circular(
+                      item['type'] == 'artist' ? 50.0 : 12.0),
+                  child: ListTile(
+                    leading: item['image'] != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              item['type'] == 'artist'
+                                  ? 50.0
+                                  : (item['type'] == 'album' ? 12.0 : 0.0),
+                            ),
+                            child: Image.network(
+                              item['image'],
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Icon(
+                            item['type'] == 'track'
+                                ? Icons.music_note
+                                : item['type'] == 'artist'
+                                    ? Icons.person
+                                    : Icons.album,
+                            color: Colors.white70,
+                            size: 40,
+                          ),
+                    title: Text(
+                      item['name'],
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    subtitle: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 4.0),
+                          decoration: BoxDecoration(
+                            color: badgeColor,
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          child: Text(
+                            item['type'].toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 10.0,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8.0),
+                        if (item['type'] == 'track' || item['type'] == 'album')
+                          Flexible(
+                            child: Text(
+                              'by ${item['artist']}',
+                              style: const TextStyle(
+                                  color: Colors.white54, fontSize: 12.0),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                      ],
+                    ),
+                    trailing: item['parentId'] == null
+                        ? IconButton(
+                            icon: const Icon(Icons.delete,
+                                color: Color.fromARGB(255, 211, 22, 8)),
+                            onPressed: () async {
+                              final askConfirmation = await PreferencesHelper
+                                  .getAskDeleteConfirmation();
+
+                              if (askConfirmation) {
+                                final confirmed = await _showConfirmationDialog(
+                                  'Delete ${item['type']}',
+                                  'Are you sure you want to delete this ${item['type']}?',
+                                );
+                                if (confirmed) {
+                                  _deleteItem(item['id'], item['type']);
+                                }
+                              } else {
+                                _deleteItem(item['id'], item['type']);
+                              }
+                            },
+                          )
+                        : Checkbox(
+                            value: false, // Placeholder for now
+                            onChanged: (value) async {
                               _deleteItem(item['id'], item['type']);
-                            }
-                          } else {
-                            _deleteItem(item['id'], item['type']);
-                          }
-                        },
-                      )
-                    : Checkbox(
-                        value: false, // Placeholder for now
-                        onChanged: (value) async {
-                          _deleteItem(item['id'], item['type']);
-                        },
-                      ),
-              ),
-            ),
+                            },
+                          ),
+                  ),
+                ),
+              );
+            },
           );
-        },
-      );
   }
 }
