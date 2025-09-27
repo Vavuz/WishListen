@@ -802,7 +802,7 @@ class _MyListPageState extends State<MyListPage> {
               final badgeColor = item['type'] == 'track'
                   ? Colors.green[700]
                   : item['type'] == 'album'
-                      ? Colors.blue[700]
+                      ? const Color.fromARGB(255, 15, 19, 22)
                       : Colors.amber[700];
 
               if (item['type'] == 'album') {
@@ -973,11 +973,23 @@ class _MyListPageState extends State<MyListPage> {
                             },
                           )
                         : Checkbox(
-                            value: false, // Placeholder for now
-                            onChanged: (value) async {
-                              _deleteItem(item['id'], item['type']);
-                            },
-                          ),
+                          value: (item['isChecked'] ?? 0) == 1,
+                          onChanged: (v) async {
+                            final newVal = v ?? false;
+                            await DatabaseHelper().updateItemChecked(item['id'], newVal);
+
+                            setState(() {
+                              final updated = Map<String, dynamic>.from(item)..['isChecked'] = newVal ? 1 : 0;
+                              _myList[index] = updated;
+
+                              final idx = _originalList.indexWhere((e) => e['id'] == item['id']);
+                              if (idx != -1) {
+                                _originalList[idx] = Map<String, dynamic>.from(_originalList[idx])
+                                  ..['isChecked'] = newVal ? 1 : 0;
+                              }
+                            });
+                          },
+                        )
                   ),
                 ),
               );

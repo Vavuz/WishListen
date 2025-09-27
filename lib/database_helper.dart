@@ -21,7 +21,7 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     return openDatabase(
       join(dbPath, 'mylist.db'),
-      version: 3,
+      version: 4,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE items (
@@ -31,7 +31,8 @@ class DatabaseHelper {
             artist TEXT NOT NULL,
             image TEXT NOT NULL,
             parentId TEXT,
-            isExpanded INTEGER DEFAULT 0 -- New column
+            isExpanded INTEGER DEFAULT 0
+            isChecked INTEGER DEFAULT 0
           )
         ''');
       },
@@ -41,6 +42,9 @@ class DatabaseHelper {
         }
         if (oldVersion < 3) {
           await db.execute('ALTER TABLE items ADD COLUMN isExpanded INTEGER DEFAULT 0');
+        }
+        if (oldVersion < 4) {
+          await db.execute('ALTER TABLE items ADD COLUMN isChecked INTEGER DEFAULT 0');
         }
       },
     );
@@ -71,6 +75,16 @@ class DatabaseHelper {
     await db.update(
       'items',
       {'isExpanded': isExpanded ? 1 : 0},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> updateItemChecked(String id, bool isChecked) async {
+    final db = await database;
+    await db.update(
+      'items',
+      {'isChecked': isChecked ? 1 : 0},
       where: 'id = ?',
       whereArgs: [id],
     );
