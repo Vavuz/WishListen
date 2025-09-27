@@ -77,6 +77,7 @@ class _MainPageState extends State<MainPage>
   late TabController _tabController;
   final FocusNode _searchFocusNode = FocusNode();
   bool isAskConfirmationEnabled = true;
+  bool isDarkModeEnabled = true;
 
   @override
   void initState() {
@@ -96,6 +97,13 @@ class _MainPageState extends State<MainPage>
     bool value = await PreferencesHelper.getAskDeleteConfirmation();
     setState(() {
       isAskConfirmationEnabled = value;
+    });
+  }
+
+  void _loadDarkMode() async {
+    bool value = await PreferencesHelper.getDarkMode();
+    setState(() {
+      isDarkModeEnabled = value;
     });
   }
 
@@ -204,6 +212,8 @@ class _MainPageState extends State<MainPage>
   Future<void> _showSettingsDialog(BuildContext context) async {
     bool isAskConfirmationEnabled =
         await PreferencesHelper.getAskDeleteConfirmation();
+    bool isDarkModeEnabled =
+        await PreferencesHelper.getDarkMode();
 
     showDialog(
       context: context,
@@ -222,7 +232,6 @@ class _MainPageState extends State<MainPage>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Expanded(
                         child: Text(
@@ -244,6 +253,25 @@ class _MainPageState extends State<MainPage>
                       ),
                     ],
                   ),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Dark mode',
+                          style: TextStyle(color: Colors.white70),
+                          maxLines: null,
+                        ),
+                      ),
+                      Switch(
+                        value: isDarkModeEnabled,
+                        onChanged: (bool newValue) async {
+                          await PreferencesHelper.setDarkMode(newValue);
+                          setState(() => isDarkModeEnabled = newValue);
+                        },
+                        activeColor: const Color(0xFF1DB954),
+                      ),
+                    ],
+                  )
                 ],
               ),
               actions: [
