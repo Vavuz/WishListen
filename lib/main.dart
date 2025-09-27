@@ -22,6 +22,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'WishListen',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFF191414),
         colorScheme: const ColorScheme.dark(
@@ -276,15 +277,15 @@ class _MainPageState extends State<MainPage>
             style: TextStyle(color: Colors.white),
           ),
           content: const Text(
-            'Hi from Vavuz, the developer of WishListen!\n\n'
-            'I hope you enjoy this app. Here’s how to use it:\n'
-            '- Search for songs, albums, or artists in the Search tab.\n'
-            '- Add them to your list by clicking the "+" icon.\n'
-            '- Manage your list in the My List tab using filters and sorting options.\n\n'
-            'If the search doesn’t work, give it a minute for the keys to be fetched.\n\n'
-            'Thanks for trying WishListen!',
+            '\nWelcome to WishListen!\n\n'
+            'Using the app is simple:\n'
+            '• Search for songs, albums, and artists in the Search tab.\n'
+            '• Add them to your list by tapping the plus icon.\n'
+            '• Manage your list in the My List tab with filters and sorting options.\n\n'
+            'This product uses the Spotify Web API but is not endorsed, certified, or approved by Spotify.\n\n'
+            'Thanks for trying WishListen!\n– Vavuz',
             style: TextStyle(color: Colors.white70, fontSize: 14.0),
-            textAlign: TextAlign.left,
+            textAlign: TextAlign.justify,
           ),
           actions: [
             TextButton(
