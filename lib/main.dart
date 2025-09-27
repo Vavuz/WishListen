@@ -636,6 +636,7 @@ class MyListPage extends StatefulWidget {
 class _MyListPageState extends State<MyListPage> {
   List<Map<String, dynamic>> _originalList = [];
   List<Map<String, dynamic>> _myList = [];
+  List<Map<String, dynamic>> _allTracks = [];
   String _currentFilter = 'filter_all';
   String _currentSort = '';
 
@@ -674,7 +675,6 @@ class _MyListPageState extends State<MyListPage> {
         break;
       case 'filter_all':
         _currentFilter = 'filter_all';
-        _currentSort = '';
         break;
     }
 
@@ -696,13 +696,17 @@ class _MyListPageState extends State<MyListPage> {
     setState(() {
       _myList = List.from(_originalList);
 
-      // Apply filter if not "show all"
-      if (_currentFilter != 'filter_all') {
+      final noFilter = _currentFilter.isEmpty || _currentFilter == 'filter_all';
+
+      if (!noFilter) {
+        if (_currentFilter == 'filter_track') {
+          _myList = List.from(_allTracks);
+        } else {
         final filterType = _currentFilter.replaceFirst('filter_', '');
         _myList = _myList.where((item) => item['type'] == filterType).toList();
+        }
       }
 
-      // Apply sort if specified
       if (_currentSort.isNotEmpty) {
         _sortListBy(_currentSort);
       }
@@ -712,14 +716,13 @@ class _MyListPageState extends State<MyListPage> {
   Future<void> _loadMyList() async {
     final dbHelper = DatabaseHelper();
     final items = await dbHelper.getItems();
+    List<Map<String, dynamic>> newList = [];
 
     // Reverse the items list to display the most recently added first
     final reversedItems = items.reversed.toList();
 
-    // Build the new list
-    List<Map<String, dynamic>> newList = [];
-    final songs =
-        reversedItems.where((item) => item['type'] == 'track').toList();
+    _allTracks = reversedItems.where((it) => it['type'] == 'track').toList();
+    final songs = reversedItems.where((item) => item['type'] == 'track').toList();
 
     for (var item in reversedItems) {
       if (item['type'] == 'album') {
@@ -879,12 +882,13 @@ class _MyListPageState extends State<MyListPage> {
                 );
               }
 
-              // Handle other items (e.g., tracks)
+        // Tracks / artists
+        final bool songsOnly = _currentFilter == 'filter_track';
               return Padding(
                 padding: EdgeInsets.only(
-                  left: item['parentId'] != null
-                      ? 32.0
-                      : 8.0, // Indent songs in albums
+            left: songsOnly
+                ? 8.0
+                : (item['parentId'] != null ? 32.0 : 8.0),
                   right: 8.0,
                   top: 4.0,
                   bottom: 4.0,
