@@ -4,6 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'database_helper.dart';
 import 'preferences_helper.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:wish_listen/generated/l10n/app_localizations.dart';
+
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +26,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'WishListen',
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'), // English
+        Locale('it'), // Italian
+        Locale('es'), // Spanish
+      ],
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFF191414),
         colorScheme: const ColorScheme.dark(
@@ -139,22 +153,22 @@ class _MainPageState extends State<MainPage>
                   },
                   icon: const Icon(Icons.filter_list),
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
-                        value: 'sort_name', child: Text('Sort by Name')),
-                    const PopupMenuItem(
-                        value: 'sort_artist', child: Text('Sort by Artist')),
-                    const PopupMenuItem(
-                        value: 'sort_type', child: Text('Sort by Type')),
-                    const PopupMenuItem(
-                        value: 'filter_songs', child: Text('Show Only Songs')),
-                    const PopupMenuItem(
+                    PopupMenuItem(
+                        value: 'sort_name', child: Text(AppLocalizations.of(context)!.sortName)),
+                    PopupMenuItem(
+                        value: 'sort_artist', child: Text(AppLocalizations.of(context)!.sortArtist)),
+                    PopupMenuItem(
+                        value: 'sort_type', child: Text(AppLocalizations.of(context)!.sortType)),
+                    PopupMenuItem(
+                        value: 'filter_songs', child: Text(AppLocalizations.of(context)!.showSongs)),
+                    PopupMenuItem(
                         value: 'filter_artists',
-                        child: Text('Show Only Artists')),
-                    const PopupMenuItem(
+                        child: Text(AppLocalizations.of(context)!.showArtists)),
+                    PopupMenuItem(
                         value: 'filter_albums',
-                        child: Text('Show Only Albums')),
-                    const PopupMenuItem(
-                        value: 'filter_all', child: Text('Show All')),
+                        child: Text(AppLocalizations.of(context)!.showAlbums)),
+                    PopupMenuItem(
+                        value: 'filter_all', child: Text(AppLocalizations.of(context)!.showAll)),
                   ],
                 );
               }
@@ -164,9 +178,9 @@ class _MainPageState extends State<MainPage>
         ],
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'Search'),
-            Tab(text: 'My List'),
+          tabs: [
+            Tab(text: AppLocalizations.of(context)!.search),
+            Tab(text: AppLocalizations.of(context)!.myList),
           ],
         ),
       ),
@@ -189,7 +203,7 @@ class _MainPageState extends State<MainPage>
           children: [
             ListTile(
               leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
+              title: Text(AppLocalizations.of(context)!.settings),
               onTap: () {
                 Navigator.of(context).pop();
                 _showSettingsDialog(context);
@@ -197,7 +211,7 @@ class _MainPageState extends State<MainPage>
             ),
             ListTile(
               leading: const Icon(Icons.info),
-              title: const Text('About'),
+              title: Text(AppLocalizations.of(context)!.about),
               onTap: () {
                 Navigator.of(context).pop();
                 _showAboutDialog(context);
@@ -224,8 +238,8 @@ class _MainPageState extends State<MainPage>
               backgroundColor: const Color(0xFF191414),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.0)),
-              title: const Text(
-                'Settings',
+              title: Text(
+                AppLocalizations.of(context)!.settings,
                 style: TextStyle(color: Colors.white),
               ),
               content: Column(
@@ -233,9 +247,9 @@ class _MainPageState extends State<MainPage>
                 children: [
                   Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Ask for confirmation before deleting an item',
+                          AppLocalizations.of(context)!.askDeleteConfirmationSwitch,
                           style: TextStyle(color: Colors.white70),
                           maxLines: null,
                         ),
@@ -255,9 +269,9 @@ class _MainPageState extends State<MainPage>
                   ),
                   Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Dark mode',
+                          AppLocalizations.of(context)!.darkModeSwitch,
                           style: TextStyle(color: Colors.white70),
                           maxLines: null,
                         ),
@@ -300,18 +314,11 @@ class _MainPageState extends State<MainPage>
           backgroundColor: const Color(0xFF191414),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-          title: const Text(
-            'About WishListen',
+          title: Text(
+            AppLocalizations.of(context)!.aboutTitle,
             style: TextStyle(color: Colors.white),
           ),
-          content: const Text(
-            '\nWelcome to WishListen!\n\n'
-            'Using the app is simple:\n'
-            '• Search for songs, albums, and artists in the Search tab.\n'
-            '• Add them to your list by tapping the plus icon.\n'
-            '• Manage your list in the My List tab with filters and sorting options.\n\n'
-            'This product uses the Spotify Web API but is not endorsed, certified, or approved by Spotify.\n\n'
-            'Thanks for trying WishListen!\n– Vavuz',
+          content: Text(AppLocalizations.of(context)!.aboutText,
             style: TextStyle(color: Colors.white70, fontSize: 14.0),
             textAlign: TextAlign.justify,
           ),
@@ -320,8 +327,8 @@ class _MainPageState extends State<MainPage>
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text(
-                'Close',
+              child: Text(
+                AppLocalizations.of(context)!.close,
                 style: TextStyle(color: Color(0xFF1DB954)),
               ),
             ),
@@ -521,7 +528,11 @@ class _SearchPageState extends State<SearchPage> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${item['name']} added to My List')),
+      SnackBar(
+        content: Text(
+          '${item['name']} ${AppLocalizations.of(context)!.added} ${AppLocalizations.of(context)!.myList}',
+        ),
+      ),
     );
   }
 
@@ -536,7 +547,7 @@ class _SearchPageState extends State<SearchPage> {
             focusNode: widget.focusNode,
             onChanged: _searchSpotify,
             decoration: InputDecoration(
-              hintText: 'Search for artists, songs, or albums',
+              hintText: AppLocalizations.of(context)!.searchText,
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
               prefixIcon: const Icon(Icons.search),
@@ -546,7 +557,7 @@ class _SearchPageState extends State<SearchPage> {
           if (_isLoading)
             const CircularProgressIndicator()
           else if (_hasSearched && _searchResults.isEmpty)
-            const Text('No results found.')
+            Text(AppLocalizations.of(context)!.notFound)
           else
             Expanded(
               child: ListView.builder(
@@ -617,7 +628,7 @@ class _SearchPageState extends State<SearchPage> {
                                 item['type'] == 'album')
                               Flexible(
                                 child: Text(
-                                  'by ${item['artist']}',
+                                  '${AppLocalizations.of(context)!.by} ${item['artist']}',
                                   style: const TextStyle(
                                       color: Colors.white54, fontSize: 12.0),
                                   overflow: TextOverflow.ellipsis,
@@ -799,11 +810,11 @@ class _MyListPageState extends State<MyListPage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(AppLocalizations.of(context)!.cancel),
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Confirm'),
+                child: Text(AppLocalizations.of(context)!.confirm),
               ),
             ],
           ),
@@ -871,8 +882,8 @@ class _MyListPageState extends State<MyListPage> {
             children: [
               if (hasFilter)
                 Chip(
-                  label: Text('Filter: $filterLabel',
-                      style: const TextStyle(color: Colors.white)),
+                  label: Text('${AppLocalizations.of(context)!.filter}: $filterLabel',
+                            style: const TextStyle(color: Colors.white)),
                   backgroundColor: const Color(0xFF303030),
                   deleteIcon: const Icon(Icons.close, size: 16),
                   onDeleted: () {
@@ -885,7 +896,7 @@ class _MyListPageState extends State<MyListPage> {
 
               if (hasSort)
                 Chip(
-                  label: Text('Sort: $sortLabel',
+                  label: Text('${AppLocalizations.of(context)!.sort}: $sortLabel',
                       style: const TextStyle(color: Colors.white)),
                   backgroundColor: const Color(0xFF303030),
                   deleteIcon: const Icon(Icons.close, size: 16),
@@ -912,7 +923,7 @@ class _MyListPageState extends State<MyListPage> {
                     _applyFiltersAndSorts();
                   },
                   icon: const Icon(Icons.clear_all, size: 18),
-                  label: const Text('Clear'),
+                  label: Text(AppLocalizations.of(context)!.clear),
                 ),
             ],
           ),
@@ -921,9 +932,9 @@ class _MyListPageState extends State<MyListPage> {
     }
 
     if (_myList.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          'No items in your list.',
+          AppLocalizations.of(context)!.emptyList,
           style: TextStyle(color: Colors.white70),
         ),
       );
@@ -969,7 +980,7 @@ class _MyListPageState extends State<MyListPage> {
                         style: const TextStyle(color: Colors.white),
                       ),
                       subtitle: Text(
-                        'by ${item['artist']}',
+                        '${AppLocalizations.of(context)!.by} ${item['artist']}',
                         style: const TextStyle(color: Colors.white70),
                       ),
                 trailing: Row(
@@ -998,8 +1009,8 @@ class _MyListPageState extends State<MyListPage> {
 
                         if (askConfirmation) {
                           final confirmed = await _showConfirmationDialog(
-                            'Delete Album',
-                            'Are you sure you want to delete this album?',
+                            '${AppLocalizations.of(context)!.delete} ${item['type']}',
+                            '${AppLocalizations.of(context)!.askDeleteConfirmation} ${item['type']}?',
                           );
                                 if (confirmed) {
                                   _deleteItem(item['id'], item['type']);
@@ -1080,7 +1091,7 @@ class _MyListPageState extends State<MyListPage> {
                   if (item['type'] == 'track' || item['type'] == 'album')
                     Flexible(
                       child: Text(
-                        'by ${item['artist']}',
+                        '${AppLocalizations.of(context)!.by} ${item['artist']}',
                               style: const TextStyle(
                                   color: Colors.white54, fontSize: 12.0),
                         overflow: TextOverflow.ellipsis,
@@ -1099,8 +1110,8 @@ class _MyListPageState extends State<MyListPage> {
 
                         if (askConfirmation) {
                           final confirmed = await _showConfirmationDialog(
-                            'Delete ${item['type']}',
-                            'Are you sure you want to delete this ${item['type']}?',
+                            '${AppLocalizations.of(context)!.delete} ${item['type']}',
+                            '${AppLocalizations.of(context)!.askDeleteConfirmation} ${item['type']}?',
                           );
                                 if (confirmed) {
                                   _deleteItem(item['id'], item['type']);
