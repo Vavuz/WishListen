@@ -130,7 +130,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutText.
   ///
   /// In en, this message translates to:
-  /// **'\nWelcome to WishListen!\n\nUsing the app is simple:\n• Search for songs, albums, and artists in the Search tab.\n• Add them to your list by tapping the plus icon.\n• Manage your list in the My List tab with filters and sorting options.\n\nThis product uses the Spotify Web API but is not endorsed, certified, or approved by Spotify.\n\n\'Thanks for trying WishListen!\n– Vavuz'**
+  /// **'\nWelcome to WishListen!\n\nUsing the app is simple:\n• Search for songs, albums, and artists in the Search tab.\n• Add them to your list by tapping the plus icon.\n• Manage your list in the My List tab with filters and sorting options.\n\nThis product uses the Spotify Web API but is not endorsed, certified, or approved by Spotify.\n\nThanks for trying WishListen!\n- Vavuz'**
   String get aboutText;
 
   /// No description provided for @askDeleteConfirmationSwitch.
