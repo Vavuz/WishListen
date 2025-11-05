@@ -2,20 +2,25 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
+import 'package:wish_listen/theme.dart';
 import 'database_helper.dart';
 import 'preferences_helper.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:wish_listen/generated/l10n/app_localizations.dart';
 
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([
+
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
-  ]).then((_) {
-    runApp(const MyApp());
-  });
+  ]);
+
+  final isDark = await PreferencesHelper.getDarkMode();
+  appThemeMode.value = isDark ? ThemeMode.dark : ThemeMode.light;
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -23,58 +28,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'WishListen',
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en'), // English
-        Locale('it'), // Italian
-        Locale('es'), // Spanish
-      ],
-      theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFF191414),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF1DB954),
-          secondary: Color(0xFF1DB954),
-        ),
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white70),
-          bodySmall: TextStyle(color: Colors.white54),
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF191414),
-          foregroundColor: Colors.white,
-        ),
-        tabBarTheme: const TabBarTheme(
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white54,
-          indicator: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: Color(0xFF1DB954), width: 2),
-            ),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: const Color(0xFF1E1E1E),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: const BorderSide(color: Color(0xFF1DB954)),
-          ),
-          focusedBorder: const OutlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF1DB954), width: 2),
-          ),
-          hintStyle: const TextStyle(color: Colors.white54),
-        ),
-      ),
-      home: const MainPage(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: appThemeMode,
+      builder: (context, mode, _) {
+        return MaterialApp(
+          title: 'WishListen',
+          debugShowCheckedModeBanner: false,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'), // English
+            Locale('it'), // Italian
+            Locale('es'), // Spanish
+          ],
+          theme: buildLightTheme(),
+          darkTheme: buildDarkTheme(),
+          themeMode: mode,
+          home: const MainPage(),
+        );
+      },
     );
   }
 }
@@ -235,12 +211,12 @@ class _MainPageState extends State<MainPage>
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF191414),
+              backgroundColor: Theme.of(context).colorScheme.surface,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.0)),
               title: Text(
                 AppLocalizations.of(context)!.settings,
-                style: TextStyle(color: Colors.white),
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -250,7 +226,7 @@ class _MainPageState extends State<MainPage>
                       Expanded(
                         child: Text(
                           AppLocalizations.of(context)!.askDeleteConfirmationSwitch,
-                          style: TextStyle(color: Colors.white70),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
                           maxLines: null,
                         ),
                       ),
@@ -263,7 +239,7 @@ class _MainPageState extends State<MainPage>
                             isAskConfirmationEnabled = newValue;
                           });
                         },
-                        activeColor: const Color(0xFF1DB954),
+                        activeColor: Theme.of(context).colorScheme.primary,
                       ),
                     ],
                   ),
@@ -272,7 +248,7 @@ class _MainPageState extends State<MainPage>
                       Expanded(
                         child: Text(
                           AppLocalizations.of(context)!.darkModeSwitch,
-                          style: TextStyle(color: Colors.white70),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
                           maxLines: null,
                         ),
                       ),
@@ -280,9 +256,10 @@ class _MainPageState extends State<MainPage>
                         value: isDarkModeEnabled,
                         onChanged: (bool newValue) async {
                           await PreferencesHelper.setDarkMode(newValue);
+                          appThemeMode.value = newValue ? ThemeMode.dark : ThemeMode.light;
                           setState(() => isDarkModeEnabled = newValue);
                         },
-                        activeColor: const Color(0xFF1DB954),
+                        activeColor: Theme.of(context).colorScheme.primary,
                       ),
                     ],
                   )
@@ -293,9 +270,9 @@ class _MainPageState extends State<MainPage>
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: const Text(
+                  child: Text(
                     'Close',
-                    style: TextStyle(color: Color(0xFF1DB954)),
+                    style: TextStyle(color: Theme.of(context).colorScheme.primary),
                   ),
                 ),
               ],
@@ -311,15 +288,15 @@ class _MainPageState extends State<MainPage>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF191414),
+          backgroundColor: Theme.of(context).colorScheme.surface,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
           title: Text(
             AppLocalizations.of(context)!.aboutTitle,
-            style: TextStyle(color: Colors.white),
+            style: Theme.of(context).textTheme.bodyLarge,
           ),
           content: Text(AppLocalizations.of(context)!.aboutText,
-            style: TextStyle(color: Colors.white70, fontSize: 14.0),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 14.0),
             textAlign: TextAlign.justify,
           ),
           actions: [
@@ -329,7 +306,7 @@ class _MainPageState extends State<MainPage>
               },
               child: Text(
                 AppLocalizations.of(context)!.close,
-                style: TextStyle(color: Color(0xFF1DB954)),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
             ),
           ],
@@ -477,8 +454,6 @@ class _SearchPageState extends State<SearchPage> {
             }
           }
         });
-      } else {
-        // _showError('Failed to search Spotify.');
       }
     } catch (e) {
       _showError('An error occurred: $e');
@@ -599,12 +574,12 @@ class _SearchPageState extends State<SearchPage> {
                                     : item['type'] == 'artist'
                                         ? Icons.person
                                         : Icons.album,
-                                color: Colors.white70,
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                                 size: 40,
                               ),
                         title: Text(
                           item['name'],
-                          style: const TextStyle(color: Colors.white),
+                          style: Theme.of(context).textTheme.bodyLarge,
                         ),
                         subtitle: Row(
                           children: [
@@ -617,9 +592,9 @@ class _SearchPageState extends State<SearchPage> {
                               ),
                               child: Text(
                                 item['type'].toUpperCase(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 10.0,
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                                 ),
                               ),
                             ),
@@ -629,8 +604,8 @@ class _SearchPageState extends State<SearchPage> {
                               Flexible(
                                 child: Text(
                                   '${AppLocalizations.of(context)!.by} ${item['artist']}',
-                                  style: const TextStyle(
-                                      color: Colors.white54, fontSize: 12.0),
+                                  style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 12.0),
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
                                 ),
@@ -642,7 +617,7 @@ class _SearchPageState extends State<SearchPage> {
                             _myListIds.contains(item['id'])
                                 ? Icons.check
                                 : Icons.add,
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                           ),
                           onPressed: _myListIds.contains(item['id'])
                               ? null // Disable the button if already added
@@ -872,7 +847,7 @@ class _MyListPageState extends State<MyListPage> {
           width: double.infinity,
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Wrap(
@@ -883,8 +858,8 @@ class _MyListPageState extends State<MyListPage> {
               if (hasFilter)
                 Chip(
                   label: Text('${AppLocalizations.of(context)!.filter}: $filterLabel',
-                            style: const TextStyle(color: Colors.white)),
-                  backgroundColor: const Color(0xFF303030),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
+                  backgroundColor: Theme.of(context).chipTheme.backgroundColor,
                   deleteIcon: const Icon(Icons.close, size: 16),
                   onDeleted: () {
                     setState(() {
@@ -897,8 +872,8 @@ class _MyListPageState extends State<MyListPage> {
               if (hasSort)
                 Chip(
                   label: Text('${AppLocalizations.of(context)!.sort}: $sortLabel',
-                      style: const TextStyle(color: Colors.white)),
-                  backgroundColor: const Color(0xFF303030),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
+                  backgroundColor: Theme.of(context).chipTheme.backgroundColor,
                   deleteIcon: const Icon(Icons.close, size: 16),
                   onDeleted: () {
                     setState(() {
@@ -912,7 +887,7 @@ class _MyListPageState extends State<MyListPage> {
               if (hasFilter || hasSort)
                 TextButton.icon(
                   style: TextButton.styleFrom(
-                    foregroundColor: Colors.white70,
+                    foregroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                   ),
                   onPressed: () {
@@ -935,7 +910,7 @@ class _MyListPageState extends State<MyListPage> {
       return Center(
         child: Text(
           AppLocalizations.of(context)!.emptyList,
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
         ),
       );
     }
@@ -953,6 +928,7 @@ class _MyListPageState extends State<MyListPage> {
                 ? const Color.fromARGB(255, 15, 19, 22)
                 : Colors.amber[700];
 
+        // Albums
         if (item['type'] == 'album') {
           final isExpanded = item['isExpanded'] == 1;
 
@@ -962,6 +938,7 @@ class _MyListPageState extends State<MyListPage> {
             child: Material(
               elevation: 2,
               borderRadius: BorderRadius.circular(12.0),
+              color: Theme.of(context).cardColor,
               child: ListTile(
                 leading: item['image'] != null
                     ? ClipRRect(
@@ -973,15 +950,15 @@ class _MyListPageState extends State<MyListPage> {
                           fit: BoxFit.cover,
                         ),
                       )
-                          : const Icon(Icons.album,
-                              size: 40, color: Colors.white70),
+                          : Icon(Icons.album,
+                              size: 40, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
                       title: Text(
                         item['name'],
-                        style: const TextStyle(color: Colors.white),
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
                       subtitle: Text(
                         '${AppLocalizations.of(context)!.by} ${item['artist']}',
-                        style: const TextStyle(color: Colors.white70),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
                       ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -992,7 +969,7 @@ class _MyListPageState extends State<MyListPage> {
                               isExpanded
                                   ? Icons.expand_less
                                   : Icons.expand_more,
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                             ),
                       onPressed: () async {
                               await _toggleAlbumExpanded(
@@ -1001,8 +978,8 @@ class _MyListPageState extends State<MyListPage> {
                     ),
                     // Delete Icon
                     IconButton(
-                            icon: const Icon(Icons.delete,
-                                color: Color.fromARGB(255, 211, 22, 8)),
+                            icon: Icon(Icons.delete,
+                                color: Theme.of(context).colorScheme.error),
                       onPressed: () async {
                               final askConfirmation = await PreferencesHelper
                                   .getAskDeleteConfirmation();
@@ -1042,6 +1019,7 @@ class _MyListPageState extends State<MyListPage> {
             elevation: 2,
                   borderRadius: BorderRadius.circular(
                       item['type'] == 'artist' ? 50.0 : 12.0),
+            color: Theme.of(context).cardColor,
             child: ListTile(
               leading: item['image'] != null
                   ? ClipRRect(
@@ -1063,12 +1041,12 @@ class _MyListPageState extends State<MyListPage> {
                           : item['type'] == 'artist'
                               ? Icons.person
                               : Icons.album,
-                      color: Colors.white70,
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                       size: 40,
                     ),
                     title: Text(
                       item['name'],
-                      style: const TextStyle(color: Colors.white),
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
               subtitle: Row(
                 children: [
@@ -1081,9 +1059,9 @@ class _MyListPageState extends State<MyListPage> {
                     ),
                     child: Text(
                       item['type'].toUpperCase(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10.0,
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                             ),
                     ),
                   ),
@@ -1092,8 +1070,8 @@ class _MyListPageState extends State<MyListPage> {
                     Flexible(
                       child: Text(
                         '${AppLocalizations.of(context)!.by} ${item['artist']}',
-                              style: const TextStyle(
-                                  color: Colors.white54, fontSize: 12.0),
+                              style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 12.0),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
@@ -1102,8 +1080,8 @@ class _MyListPageState extends State<MyListPage> {
               ),
               trailing: item['parentId'] == null
                   ? IconButton(
-                            icon: const Icon(Icons.delete,
-                                color: Color.fromARGB(255, 211, 22, 8)),
+                            icon: Icon(Icons.delete,
+                                color: Theme.of(context).colorScheme.error),
                       onPressed: () async {
                               final askConfirmation = await PreferencesHelper
                                   .getAskDeleteConfirmation();
