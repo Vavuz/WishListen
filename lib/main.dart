@@ -551,6 +551,7 @@ class _SearchPageState extends State<SearchPage> {
                         vertical: 4.0, horizontal: 8.0),
                     child: Material(
                       elevation: 2,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(
                           item['type'] == 'artist' ? 50.0 : 12.0),
                       child: ListTile(
@@ -925,7 +926,7 @@ class _MyListPageState extends State<MyListPage> {
         final badgeColor = item['type'] == 'track'
             ? Colors.green[700]
             : item['type'] == 'album'
-                ? const Color.fromARGB(255, 15, 19, 22)
+                ? Colors.blue[700]
                 : Colors.amber[700];
 
         // Albums
@@ -956,9 +957,34 @@ class _MyListPageState extends State<MyListPage> {
                         item['name'],
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
-                      subtitle: Text(
-                        '${AppLocalizations.of(context)!.by} ${item['artist']}',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+                      subtitle: Row(
+                        children: [
+                          Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0, vertical: 4.0),
+                            decoration: BoxDecoration(
+                              color: badgeColor,
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            child: Text(
+                              item['type'].toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 10.0,
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                  ),
+                            ),
+                          ),
+                          const SizedBox(width: 8.0),
+                          Flexible(
+                            child: Text(
+                              '${AppLocalizations.of(context)!.by} ${item['artist']}',
+                                    style: TextStyle(
+                                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 12.0),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                        ]
                       ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
