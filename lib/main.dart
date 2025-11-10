@@ -7,10 +7,12 @@ import 'database_helper.dart';
 import 'preferences_helper.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:wish_listen/generated/l10n/app_localizations.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await MobileAds.instance.initialize();
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -332,10 +334,31 @@ class _SearchPageState extends State<SearchPage> {
   bool _isLoading = false;
   bool _hasSearched = false;
   final TextEditingController _searchController = TextEditingController();
+  late BannerAd _bannerAd;
+  bool _isBannerAdReady = false;
 
   @override
   void initState() {
     super.initState();
+
+    _bannerAd = BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111',    // test ad
+      size: AdSize.largeBanner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          setState(() {
+            _isBannerAdReady = true;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          _isBannerAdReady = false;
+          ad.dispose();
+        },
+      ),
+    );
+
+    _bannerAd.load();
     _fetchSpotifyToken();
     _loadMyListIds();
 
@@ -355,6 +378,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _bannerAd.dispose();
     super.dispose();
   }
 
@@ -513,129 +537,153 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          TextField(
-            controller: _searchController,
-            focusNode: widget.focusNode,
-            onChanged: _searchSpotify,
-            decoration: InputDecoration(
-              hintText: AppLocalizations.of(context)!.searchText,
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-              prefixIcon: const Icon(Icons.search),
-            ),
-          ),
-          const SizedBox(height: 16.0),
-          if (_isLoading)
-            const CircularProgressIndicator()
-          else if (_hasSearched && _searchResults.isEmpty)
-            Text(AppLocalizations.of(context)!.notFound)
-          else
-            Expanded(
-              child: ListView.builder(
-                itemCount: _searchResults.length,
-                itemBuilder: (context, index) {
-                  final item = _searchResults[index];
-
-                  final badgeColor = item['type'] == 'track'
-                      ? Colors.green[700]
-                      : item['type'] == 'album'
-                          ? Colors.blue[700]
-                          : Colors.amber[700];
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 4.0, horizontal: 8.0),
-                    child: Material(
-                      elevation: 2,
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(
-                          item['type'] == 'artist' ? 50.0 : 12.0),
-                      child: ListTile(
-                        leading: item['image'] != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                  item['type'] == 'artist'
-                                      ? 50.0
-                                      : (item['type'] == 'album' ? 12.0 : 0.0),
-                                ),
-                                child: Image.network(
-                                  item['image'],
-                                  width: 50,
-                                  height: 50,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : Icon(
-                                item['type'] == 'track'
-                                    ? Icons.music_note
-                                    : item['type'] == 'artist'
-                                        ? Icons.person
-                                        : Icons.album,
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                                size: 40,
-                              ),
-                        title: Text(
-                          item['name'],
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                        subtitle: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0, vertical: 4.0),
-                              decoration: BoxDecoration(
-                                color: badgeColor,
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                              child: Text(
-                                item['type'].toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 10.0,
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8.0),
-                            if (item['type'] == 'track' ||
-                                item['type'] == 'album')
-                              Flexible(
-                                child: Text(
-                                  '${AppLocalizations.of(context)!.by} ${item['artist']}',
-                                  style: TextStyle(
-                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 12.0),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
-                              ),
-                          ],
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(
-                            _myListIds.contains(item['id'])
-                                ? Icons.check
-                                : Icons.add,
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                          ),
-                          onPressed: _myListIds.contains(item['id'])
-                              ? null // Disable the button if already added
-                              : () async {
-                                  await addToMyList(item);
-                                  setState(() => _myListIds.add(item[
-                                      'id']));
-                                },
-                        ),
-                      ),
-                    ),
-                  );
-                },
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _searchController,
+              focusNode: widget.focusNode,
+              onChanged: _searchSpotify,
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context)!.searchText,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                prefixIcon: const Icon(Icons.search),
               ),
             ),
-        ],
+            const SizedBox(height: 16.0),
+            if (_isLoading)
+              const CircularProgressIndicator()
+            else if (_hasSearched && _searchResults.isEmpty)
+              Text(AppLocalizations.of(context)!.notFound)
+            else
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _searchResults.length,
+                  itemBuilder: (context, index) {
+                    final item = _searchResults[index];
+                    final badgeColor = item['type'] == 'track'
+                        ? Colors.green[700]
+                        : item['type'] == 'album'
+                            ? Colors.blue[700]
+                            : Colors.amber[700];
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 4.0, horizontal: 8.0),
+                      child: Material(
+                        elevation: 2,
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(
+                            item['type'] == 'artist' ? 50.0 : 12.0),
+                        child: ListTile(
+                          leading: item['image'] != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                    item['type'] == 'artist'
+                                        ? 50.0
+                                        : (item['type'] == 'album' ? 12.0 : 0.0),
+                                  ),
+                                  child: Image.network(
+                                    item['image'],
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : Icon(
+                                  item['type'] == 'track'
+                                      ? Icons.music_note
+                                      : item['type'] == 'artist'
+                                          ? Icons.person
+                                          : Icons.album,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withOpacity(0.7),
+                                  size: 40,
+                                ),
+                          title: Text(
+                            item['name'],
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                          subtitle: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0, vertical: 4.0),
+                                decoration: BoxDecoration(
+                                  color: badgeColor,
+                                  borderRadius: BorderRadius.circular(12.0),
+                                ),
+                                child: Text(
+                                  item['type'].toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 10.0,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withOpacity(0.7),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8.0),
+                              if (item['type'] == 'track' ||
+                                  item['type'] == 'album')
+                                Flexible(
+                                  child: Text(
+                                    '${AppLocalizations.of(context)!.by} ${item['artist']}',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.7),
+                                      fontSize: 12.0,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(
+                              _myListIds.contains(item['id'])
+                                  ? Icons.check
+                                  : Icons.add,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.7),
+                            ),
+                            onPressed: _myListIds.contains(item['id'])
+                                ? null
+                                : () async {
+                                    await addToMyList(item);
+                                    setState(() =>
+                                        _myListIds.add(item['id']));
+                                  },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
       ),
+      bottomNavigationBar: _isBannerAdReady
+          ? Container(
+              alignment: Alignment.center,
+              width: _bannerAd.size.width.toDouble(),
+              height: _bannerAd.size.height.toDouble(),
+              child: AdWidget(ad: _bannerAd),
+            )
+          : null,
     );
   }
 }
