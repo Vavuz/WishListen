@@ -12,6 +12,7 @@
   "cancel": "Cancel",
   "confirm": "Confirm",
   "added": "added to",
+  "removed": "removed from",
   "searchText": "Search for artists, songs, or albums",
   "notFound": "No results found",
   "emptyList": "No items in your list",

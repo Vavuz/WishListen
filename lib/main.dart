@@ -534,6 +534,27 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
+  Future<void> _deleteItem(String id, String name, String type) async {
+    final dbHelper = DatabaseHelper();
+
+    if (type == 'album') {
+      // Delete album and associated songs
+      await dbHelper.deleteItem(id);
+      await dbHelper.deleteItemsByParentId(id);
+    } else {
+      // Delete individual item
+      await dbHelper.deleteItem(id);
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '$name ${AppLocalizations.of(context)!.removed} ${AppLocalizations.of(context)!.myList}',
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -659,7 +680,11 @@ class _SearchPageState extends State<SearchPage> {
                                   .withOpacity(0.7),
                             ),
                             onPressed: _myListIds.contains(item['id'])
-                                ? null
+                                ? () async {
+                                    await _deleteItem(item['id'], item['name'], item['type']);
+                                    setState(() =>
+                                        _myListIds.remove(item['id']));
+                                  }
                                 : () async {
                                     await addToMyList(item);
                                     setState(() =>
@@ -831,7 +856,7 @@ class _MyListPageState extends State<MyListPage> {
     });
   }
 
-  Future<void> _deleteItem(String id, String type) async {
+  Future<void> _deleteItem(String id, String name, String type) async {
     final dbHelper = DatabaseHelper();
 
     if (type == 'album') {
@@ -842,6 +867,14 @@ class _MyListPageState extends State<MyListPage> {
       // Delete individual item
       await dbHelper.deleteItem(id);
     }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '$name ${AppLocalizations.of(context)!.removed} ${AppLocalizations.of(context)!.myList}',
+        ),
+      ),
+    );
 
     await _loadMyList();
   }
@@ -1086,10 +1119,10 @@ class _MyListPageState extends State<MyListPage> {
                               '${AppLocalizations.of(context)!.askDeleteConfirmation} ${item['type']}?',
                             );
                                   if (confirmed) {
-                                    _deleteItem(item['id'], item['type']);
+                                    _deleteItem(item['id'], item['name'], item['type']);
                                   }
                           } else {
-                            _deleteItem(item['id'], item['type']);
+                            _deleteItem(item['id'], item['name'], item['type']);
                           }
                         },
                       ),
@@ -1188,10 +1221,10 @@ class _MyListPageState extends State<MyListPage> {
                               '${AppLocalizations.of(context)!.askDeleteConfirmation} ${item['type']}?',
                             );
                                   if (confirmed) {
-                                    _deleteItem(item['id'], item['type']);
+                                    _deleteItem(item['id'], item['name'], item['type']);
                                   }
                           } else {
-                            _deleteItem(item['id'], item['type']);
+                            _deleteItem(item['id'], item['name'], item['type']);
                           }
                         },
                       )

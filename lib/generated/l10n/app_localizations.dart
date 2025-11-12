@@ -175,6 +175,12 @@ abstract class AppLocalizations {
   /// **'added to'**
   String get added;
 
+  /// No description provided for @removed.
+  ///
+  /// In en, this message translates to:
+  /// **'removed from'**
+  String get removed;
+
   /// No description provided for @searchText.
   ///
   /// In en, this message translates to:

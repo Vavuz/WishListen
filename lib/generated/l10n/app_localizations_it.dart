@@ -46,6 +46,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get added => 'aggiunto a';
 
   @override
+  String get removed => 'rimosso da';
+
+  @override
   String get searchText => 'Cerca artisti, canzoni o album';
 
   @override
