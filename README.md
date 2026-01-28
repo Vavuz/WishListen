@@ -1,16 +1,11 @@
-# wish_listen
+⚠️ Intellectual Property Notice
 
-A new Flutter project.
+This project is an original idea and implementation created by me.
 
-## Getting Started
+You are not permitted to copy, clone, reproduce, or redistribute this repository or any part of its code, whether in full or in part, for personal, commercial, or educational use.
 
-This project is a starting point for a Flutter application.
+Unauthorized use, duplication, or imitation of this project or its concept is strictly prohibited.
 
-A few resources to get you started if this is your first Flutter project:
+If you are interested in this project, feel free to explore the repository, but do not clone or reuse it without my explicit written permission.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+All rights reserved.
